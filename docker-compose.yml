@@ -1,0 +1,17 @@
+
+services:
+  offshore-proxy:
+    build:
+      context: ./offshore-proxy
+      dockerfile: Dockerfile
+    ports:
+      - "9090:9090"
+
+  ship-proxy:
+    build:
+      context: ./ship-proxy
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - offshore-proxy
