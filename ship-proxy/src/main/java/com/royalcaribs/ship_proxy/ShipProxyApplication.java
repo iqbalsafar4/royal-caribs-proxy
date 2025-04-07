@@ -1,10 +1,14 @@
 package com.royalcaribs.ship_proxy;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.*;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -21,8 +25,23 @@ public class ShipProxyApplication {
 	@Value("${offshore.proxy.url}")
 	private String offshoreServer;
 
-	private final RestTemplate restTemplate = new RestTemplate();
+	private final RestTemplate restTemplate;
 	private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+	public ShipProxyApplication() {
+		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+		connectionManager.setMaxTotal(1);
+		connectionManager.setDefaultMaxPerRoute(1);
+
+		CloseableHttpClient httpClient = HttpClients.custom()
+				.setConnectionManager(connectionManager)
+				.build();
+
+		HttpComponentsClientHttpRequestFactory requestFactory =
+				new HttpComponentsClientHttpRequestFactory(httpClient);
+
+		restTemplate = new RestTemplate(requestFactory);
+	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(ShipProxyApplication.class, args);
